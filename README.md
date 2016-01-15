@@ -1,8 +1,9 @@
 Registry ACL
 =
 When this plugin is installed, SOMETHING WILL HAPPEN TODO.
-In order to use this plugin you need to be running at least Docker 1.10 which
-has support for authorization plugins.
+
+_In order to use this plugin you need to be running at least Docker 1.10 which
+has support for authorization plugins._
 
 Building
 -
