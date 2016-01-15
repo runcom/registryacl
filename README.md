@@ -16,7 +16,6 @@ $ make
 ```
 Installing
 -
-Either:
 ```sh
 $ sudo make install
 $ systemctl enable registryacl-plugin
