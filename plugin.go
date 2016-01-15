@@ -29,6 +29,7 @@ const (
 	actionPull   = "pull"
 	actionPush   = "push"
 	actionSearch = "search"
+	actionLogin  = "login"
 )
 
 type policy struct {
@@ -62,11 +63,11 @@ func newPlugin(dockerHost, configPath string) (*registryacl, error) {
 var (
 	// POST
 	pushRegExp = regexp.MustCompile(`/images/(.*)/push$`)
-	pullRegExp = regexp.MustCompile(`/images/create$`)
+	pullRegExp = regexp.MustCompile(`/images/create`)
+	authRegExp = regexp.MustCompile(`/auth$`)
 	// GET
-	searchRegExp = regexp.MustCompile(`/images/search$`)
+	searchRegExp = regexp.MustCompile(`/images/search`)
 	// TODO(runcom): block build from?!
-	// TODO(runcom): block login
 )
 
 func (p *registryacl) AuthZReq(req authz.Request) authz.Response {
@@ -93,6 +94,10 @@ func (p *registryacl) AuthZReq(req authz.Request) authz.Response {
 		}
 		if pullRegExp.MatchString(req.RequestURI) { // && &fromImage != "" -> then we're pulling
 			action = actionPull
+
+		}
+		if authRegExp.MatchString(req.RequestURI) {
+			action = actionAuth
 
 		}
 	}
