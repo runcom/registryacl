@@ -1,5 +1,8 @@
 [registries]
 
+  # once AuthN gets in we could do fine grained acl based
+  # on users/groups
+
   [registries."*"]
   deny = ["*"]
 
