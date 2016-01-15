@@ -15,6 +15,7 @@ const (
 var (
 	flDockerHost   = flag.String("host", defaultDockerHost, "Docker host the plugin connects to when inspecting")
 	flPluginSocket = flag.String("socket", defaultPluginSocket, "Plugin's socket path")
+	flConfig       = flag.String("acl", "", "Plugin's configuration file path")
 	// TODO(runcom): add tls option to connect to docker?
 	// TODO(runcom): add plugin tls option (need to learn more...)
 	// TODO(runcom): add config tls option based on Dan's suggestion to block based on AuthN
@@ -23,7 +24,7 @@ var (
 func main() {
 	flag.Parse()
 
-	novolume, err := newPlugin(*flDockerHost)
+	novolume, err := newPlugin(*flDockerHost, *flConfig)
 	if err != nil {
 		logrus.Fatal(err)
 	}

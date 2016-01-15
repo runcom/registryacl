@@ -1,27 +1,66 @@
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 	dockerapi "github.com/docker/docker/api"
 	dockerclient "github.com/docker/engine-api/client"
 	"github.com/docker/go-plugins-helpers/authz"
 )
 
-func newPlugin(dockerHost string) (*registryacl, error) {
+type registryacl struct {
+	client *dockerclient.Client
+	config config
+}
+
+type config struct {
+	Registries map[string]policy
+}
+
+const (
+	policyAllow = "allow"
+	policyDeny  = "deny"
+
+	actionPull   = "pull"
+	actionPush   = "push"
+	actionSearch = "search"
+)
+
+type policy struct {
+	Actions []string
+	Policy  string
+}
+
+func newPlugin(dockerHost, configPath string) (*registryacl, error) {
 	client, err := dockerclient.NewClient(dockerHost, dockerapi.DefaultVersion.String(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	return &registryacl{client: client}, nil
+	if configPath == "" {
+		return nil, fmt.Errorf("Please specify a configuration file")
+	}
+	absConfig, err := filepath.Abs(configPath)
+	if err != nil {
+		return nil, err
+	}
+	b, err := ioutil.ReadFile(absConfig)
+	if err != nil {
+		return nil, err
+	}
+	var conf config
+	if _, err := toml.Decode(string(b), &conf); err != nil {
+		return nil, err
+	}
+	return &registryacl{client: client, config: conf}, nil
 }
 
 var (
 //startRegExp = regexp.MustCompile(`/containers/(.*)/start$`)
 // TODO(runcom): pull/push/search and other action that deal with registries
 )
-
-type registryacl struct {
-	client *dockerclient.Client
-}
 
 func (p *registryacl) AuthZReq(req authz.Request) authz.Response {
 	//if req.RequestMethod == "POST" && startRegExp.MatchString(req.RequestURI) {
