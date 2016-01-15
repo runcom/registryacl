@@ -1,0 +1,12 @@
+[Unit]
+Description=Registry ACL authZ Plugin
+Documentation=https://github.com/projectatomic/registryacl
+Before=docker.service
+Requires=docker.service
+
+[Service]
+# might need to set flags...
+ExecStart=/usr/lib/docker/registryacl
+
+[Install]
+WantedBy=multi-user.target
