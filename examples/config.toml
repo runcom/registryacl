@@ -1,13 +1,11 @@
 [registries]
 
   [registries."*"]
-  actions = ["pull", "push", "search"]
-  policy = "deny"
+  deny = ["*"]
 
   [registries."openshift.com"]
-  actions = ["pull", "push", "search"]
-  policy = "deny"
+  allow = ["*"]
 
   [registries."redhat.io"]
-  actions = ["pull", "push", "search"]
-  policy = "deny"
+  allow = ["search"]
+  deny = ["pull", "push"]

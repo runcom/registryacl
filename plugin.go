@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"regexp"
 
 	"github.com/BurntSushi/toml"
 	dockerapi "github.com/docker/docker/api"
@@ -12,6 +13,8 @@ import (
 )
 
 type registryacl struct {
+	// we need the client to ask Docker for additional registry (currently only
+	// supported in RedHat Docker's fork
 	client *dockerclient.Client
 	config config
 }
@@ -21,8 +24,7 @@ type config struct {
 }
 
 const (
-	policyAllow = "allow"
-	policyDeny  = "deny"
+	all = "*"
 
 	actionPull   = "pull"
 	actionPush   = "push"
@@ -30,8 +32,8 @@ const (
 )
 
 type policy struct {
-	Actions []string
-	Policy  string
+	Allow []string
+	Deny  []string
 }
 
 func newPlugin(dockerHost, configPath string) (*registryacl, error) {
@@ -58,30 +60,42 @@ func newPlugin(dockerHost, configPath string) (*registryacl, error) {
 }
 
 var (
-//startRegExp = regexp.MustCompile(`/containers/(.*)/start$`)
-// TODO(runcom): pull/push/search and other action that deal with registries
+	// POST
+	pushRegExp = regexp.MustCompile(`/images/(.*)/push$`)
+	pullRegExp = regexp.MustCompile(`/images/create$`)
+	// GET
+	searchRegExp = regexp.MustCompile(`/images/search$`)
+	// TODO(runcom): block build from?!
+	// TODO(runcom): block login
 )
 
 func (p *registryacl) AuthZReq(req authz.Request) authz.Response {
-	//if req.RequestMethod == "POST" && startRegExp.MatchString(req.RequestURI) {
-	//// this is deprecated in docker, remove once hostConfig is dropped to
-	//// being available at start time
-	//if req.RequestBody != nil {
-	//type vfrom struct {
-	//VolumesFrom []string
-	//}
-	//vf := &vfrom{}
-	//if err := json.NewDecoder(bytes.NewReader(req.RequestBody)).Decode(vf); err != nil {
-	//return authz.Response{Err: err.Error()}
-	//}
-	//if len(vf.VolumesFrom) > 0 {
-	//goto noallow
-	//}
-	//}
-	//res := startRegExp.FindStringSubmatch(req.RequestURI)
-	//if len(res) < 1 {
-	//return authz.Response{Err: "unable to find container name"}
-	//}
+	var (
+		image  string
+		action string
+	)
+	switch req.RequestMethod {
+	case "GET":
+		if searchRegExp.MatchString(req.RequestURI) { // && term != "" -> then try/block search
+			action = actionSearch
+
+		}
+	case "POST":
+		if pushRegExp.MatchString(req.RequestURI) {
+			res := pushRegExp.FindStringSubmatch(req.RequestURI)
+			if len(res) < 1 {
+				return authz.Response{Err: "unable to find image name"}
+			}
+			image = res[1]
+			action = actionPush
+			// decide what to allow/block
+
+		}
+		if pullRegExp.MatchString(req.RequestURI) { // && &fromImage != "" -> then we're pulling
+			action = actionPull
+
+		}
+	}
 
 	//container, err := p.client.ContainerInspect(res[1])
 	//if err != nil {
