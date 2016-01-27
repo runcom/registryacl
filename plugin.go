@@ -29,7 +29,7 @@ const (
 	actionPull   = "pull"
 	actionPush   = "push"
 	actionSearch = "search"
-	actionLogin  = "login"
+	actionAuth   = "login"
 )
 
 type policy struct {
@@ -101,6 +101,8 @@ func (p *registryacl) AuthZReq(req authz.Request) authz.Response {
 
 		}
 	}
+	_ = image
+	_ = action
 
 	//container, err := p.client.ContainerInspect(res[1])
 	//if err != nil {
