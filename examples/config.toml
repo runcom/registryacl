@@ -2,13 +2,16 @@
 
   # once AuthN gets in we could do fine grained acl based
   # on users/groups
+  #
+  # deny|allow = [[users|groups...], [action...]]
 
   [registries."*"]
-  deny = ["*"]
+  deny = [["*"], ["*"]]
+  allow = [["foo"], ["push", "pull"]]
 
   [registries."openshift.com"]
-  allow = ["*"]
+  allow = [["*"], ["*"]]
 
-  [registries."redhat.io"]
-  allow = ["search"]
-  deny = ["pull", "push"]
+  #[registries."redhat.io"]
+  #allow = ["search"]
+  #deny = ["pull", "push"]
